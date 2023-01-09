@@ -22,9 +22,6 @@ public class ValidatorServiceImpl implements ValidatorService {
     @Override
     public List<ValidatorDto> validateSource(SourceDto source) {
         List<ValidatorDto> errors = new ArrayList<>();
-        if (!ObjectUtils.isEmpty(source)) {
-            errors.add(new ValidatorDto("empty", bundle.getString("response.empty")));
-        }
         if (!StringUtils.hasText(source.getName())) {
             errors.add(new ValidatorDto("name", bundle.getString("response.empty_field")));
         }

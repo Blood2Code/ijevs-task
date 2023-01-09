@@ -14,6 +14,7 @@ import java.util.List;
 @Data
 public class Source {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
     @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)

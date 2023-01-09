@@ -1,13 +1,12 @@
 package task.ibris.service;
 
+import org.springframework.data.domain.Page;
 import task.ibris.dto.ResponseDto;
 import task.ibris.dto.SourceDto;
 
-import java.util.List;
-
 public interface SourceService {
     ResponseDto add(SourceDto source);
-    List<SourceDto> getAll();
+    ResponseDto<Page<SourceDto>> getAll(Integer page, Integer size);
     ResponseDto<SourceDto> getByName(String name);
     ResponseDto deleteById(Integer id);
 }

@@ -10,11 +10,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import task.ibris.dto.ResponseDto;
 import task.ibris.dto.SourceDto;
+import task.ibris.dto.ThematicDto;
 import task.ibris.dto.ValidatorDto;
-import task.ibris.repository.SourceRepository;
-import task.ibris.service.SourceService;
+import task.ibris.repository.ThematicRepository;
+import task.ibris.service.ThematicService;
 import task.ibris.service.ValidatorService;
 import task.ibris.service.mapper.SourceMapper;
+import task.ibris.service.mapper.ThematicMapper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,26 +26,25 @@ import java.util.ResourceBundle;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class SourceServiceImpl implements SourceService {
+public class ThematicServiceImpl implements ThematicService {
+    private final ThematicRepository repository;
     private final ResourceBundle bundle;
-    private final SourceRepository repository;
     private final ValidatorService validator;
 
     @Override
-    public ResponseDto add(SourceDto source) {
+    public ResponseDto add(ThematicDto thematic) {
         try {
-            List<ValidatorDto> errors = validator.validateSource(source);
+            List<ValidatorDto> errors = validator.validateThematic(thematic);
             if (!errors.isEmpty()) {
                 return ResponseDto.builder()
                         .code(-3)
                         .errors(errors)
-                        .message(bundle.getString("response.valid_error"))
-                        .data(bundle.getString("response.failed"))
+                        .message(bundle.getString("response.empty_field"))
                         .build();
             }
-            repository.save(SourceMapper.toEntity(source));
-            return ResponseDto.<String>builder()
-                    .success(true)
+            repository.save(ThematicMapper.toEntity(thematic));
+            return ResponseDto.builder()
+                    .code(0)
                     .message(bundle.getString("response.added"))
                     .build();
         }catch (Exception e) {
@@ -54,25 +55,23 @@ public class SourceServiceImpl implements SourceService {
                     .message(e.getMessage())
                     .build();
         }
-
     }
 
     @Override
-    public ResponseDto<Page<SourceDto>> getAll(Integer page, Integer size) {
-        ResponseDto<Page<SourceDto>> response;
+    public ResponseDto<Page<ThematicDto>> getAll(Integer page, Integer size) {
+        ResponseDto<Page<ThematicDto>> response;
         try {
-            Pageable pageRequest = PageRequest.of(page, size);
-            Page<SourceDto> list = repository.findAll(pageRequest).map(SourceMapper::toDto);
-
-            response = ResponseDto.<Page<SourceDto>>builder()
+            Pageable pageable = PageRequest.of(page, size);
+            Page<ThematicDto> list = repository.findAll(pageable).map(ThematicMapper::toDto);
+            response = ResponseDto.<Page<ThematicDto>>builder()
                     .code(0)
                     .message(bundle.getString("response.success"))
                     .success(true)
                     .data(list)
                     .build();
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error while getting all product info by page and size :: {}", e.getMessage());
-            response = ResponseDto.<Page<SourceDto>>builder()
+            response = ResponseDto.<Page<ThematicDto>>builder()
                     .code(-1)
                     .message(bundle.getString("response.error"))
                     .build();
@@ -81,24 +80,24 @@ public class SourceServiceImpl implements SourceService {
     }
 
     @Override
-    public ResponseDto<SourceDto> getByName(String name) {
+    public ResponseDto<ThematicDto> getByName(String name) {
         try {
             if (!name.isEmpty()) {
-                return ResponseDto.<SourceDto>builder()
+                return ResponseDto.<ThematicDto>builder()
                         .code(-3)
                         .errors(Collections.singletonList(new ArrayList<>().add("Error")))
                         .message(bundle.getString("response.valid_error") + "\n" + bundle.getString("response.empty_field"))
                         .build();
             }
-            return ResponseDto.<SourceDto>builder()
+            return ResponseDto.<ThematicDto>builder()
                     .code(0)
-                    .data(SourceMapper.toDto(repository.findByName(name)))
-                    .message("Source with name" + name + " found!")
+                    .data(ThematicMapper.toDto(repository.findByName(name)))
+                    .message("Thematic with name" + name + " found!")
                     .build();
-        }catch (Exception e) {
+        } catch (Exception e) {
             Marker marker = MarkerFactory.getMarker("fatal");
-            log.error(marker,  "Error while getting source from database : {}", e.getMessage());
-            return ResponseDto.<SourceDto>builder()
+            log.error(marker,  "Error while getting Thematics by name from database : {}", e.getMessage());
+            return ResponseDto.<ThematicDto>builder()
                     .success(false)
                     .message(e.getMessage())
                     .build();
@@ -106,7 +105,7 @@ public class SourceServiceImpl implements SourceService {
     }
 
     @Override
-    public ResponseDto deleteById(Integer id) {
+    public ResponseDto delete(Integer id) {
         try {
             if (id >= 0) {
                 return ResponseDto.builder()
@@ -125,7 +124,10 @@ public class SourceServiceImpl implements SourceService {
         }catch (Exception e) {
             Marker marker = MarkerFactory.getMarker("fatal");
             log.error(marker,  "Error while deleting source from database : {}", e.getMessage());
-            return ResponseDto.<SourceDto>builder().success(false).message(e.getMessage()).build();
+            return ResponseDto.<SourceDto>builder()
+                    .success(false)
+                    .message(e.getMessage())
+                    .build();
         }
     }
 }

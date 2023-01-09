@@ -10,6 +10,7 @@ import lombok.*;
 @Data
 public class News {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
     @ManyToOne

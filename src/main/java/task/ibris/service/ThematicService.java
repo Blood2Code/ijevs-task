@@ -1,12 +1,15 @@
 package task.ibris.service;
 
+import org.springframework.data.domain.Page;
 import task.ibris.dto.ResponseDto;
 import task.ibris.dto.ThematicDto;
 
-import java.util.List;
-
 public interface ThematicService {
     ResponseDto add(ThematicDto thematic);
-    List<ThematicDto> getAll();
+
+    ResponseDto<Page<ThematicDto>> getAll(Integer page, Integer size);
+
     ResponseDto<ThematicDto> getByName(String name);
+
+    ResponseDto delete(Integer id);
 }

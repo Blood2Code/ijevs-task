@@ -8,13 +8,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import task.ibris.dto.ResponseDto;
-import task.ibris.dto.SourceDto;
-import task.ibris.dto.ValidatorDto;
-import task.ibris.repository.SourceRepository;
-import task.ibris.service.SourceService;
+import task.ibris.dto.*;
+import task.ibris.repository.NewsRepository;
+import task.ibris.service.NewsService;
 import task.ibris.service.ValidatorService;
-import task.ibris.service.mapper.SourceMapper;
+import task.ibris.service.mapper.NewsMapper;
+import task.ibris.service.mapper.ThematicMapper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,57 +21,53 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
-public class SourceServiceImpl implements SourceService {
-    private final ResourceBundle bundle;
-    private final SourceRepository repository;
+@RequiredArgsConstructor
+public class NewsServiceImpl implements NewsService {
     private final ValidatorService validator;
+    private final NewsRepository repository;
+    private final ResourceBundle bundle;
 
     @Override
-    public ResponseDto add(SourceDto source) {
+    public ResponseDto add(NewsDto news) {
         try {
-            List<ValidatorDto> errors = validator.validateSource(source);
+            List<ValidatorDto> errors = validator.validateNews(news);
             if (!errors.isEmpty()) {
                 return ResponseDto.builder()
                         .code(-3)
                         .errors(errors)
-                        .message(bundle.getString("response.valid_error"))
-                        .data(bundle.getString("response.failed"))
+                        .message(bundle.getString("response.empty_field"))
                         .build();
             }
-            repository.save(SourceMapper.toEntity(source));
-            return ResponseDto.<String>builder()
-                    .success(true)
+            repository.save(NewsMapper.toEntity(news));
+            return ResponseDto.builder()
+                    .code(0)
                     .message(bundle.getString("response.added"))
                     .build();
         }catch (Exception e) {
             Marker marker = MarkerFactory.getMarker("fatal");
-            log.error(marker,  "Error while adding new source to database : {}", e.getMessage());
+            log.error(marker,  "Error while adding new news to database : {}", e.getMessage());
             return ResponseDto.<String>builder()
                     .success(false)
                     .message(e.getMessage())
                     .build();
         }
-
     }
 
     @Override
-    public ResponseDto<Page<SourceDto>> getAll(Integer page, Integer size) {
-        ResponseDto<Page<SourceDto>> response;
+    public ResponseDto<Page<NewsDto>> getAll(Integer page, Integer size) {
+        ResponseDto<Page<NewsDto>> response;
         try {
-            Pageable pageRequest = PageRequest.of(page, size);
-            Page<SourceDto> list = repository.findAll(pageRequest).map(SourceMapper::toDto);
-
-            response = ResponseDto.<Page<SourceDto>>builder()
+            Pageable pageable = PageRequest.of(page, size);
+            Page<NewsDto> list = repository.findAll(pageable).map(NewsMapper::toDto);
+            response = ResponseDto.<Page<NewsDto>>builder()
                     .code(0)
-                    .message(bundle.getString("response.success"))
                     .success(true)
                     .data(list)
                     .build();
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error while getting all product info by page and size :: {}", e.getMessage());
-            response = ResponseDto.<Page<SourceDto>>builder()
+            response = ResponseDto.<Page<NewsDto>>builder()
                     .code(-1)
                     .message(bundle.getString("response.error"))
                     .build();
@@ -81,24 +76,24 @@ public class SourceServiceImpl implements SourceService {
     }
 
     @Override
-    public ResponseDto<SourceDto> getByName(String name) {
+    public ResponseDto<NewsDto> getByName(String name) {
         try {
             if (!name.isEmpty()) {
-                return ResponseDto.<SourceDto>builder()
+                return ResponseDto.<NewsDto>builder()
                         .code(-3)
                         .errors(Collections.singletonList(new ArrayList<>().add("Error")))
                         .message(bundle.getString("response.valid_error") + "\n" + bundle.getString("response.empty_field"))
                         .build();
             }
-            return ResponseDto.<SourceDto>builder()
+            return ResponseDto.<NewsDto>builder()
                     .code(0)
-                    .data(SourceMapper.toDto(repository.findByName(name)))
-                    .message("Source with name" + name + " found!")
+                    .data(NewsMapper.toDto(repository.findByName(name)))
+                    .message("Thematic with name" + name + " found!")
                     .build();
-        }catch (Exception e) {
+        } catch (Exception e) {
             Marker marker = MarkerFactory.getMarker("fatal");
-            log.error(marker,  "Error while getting source from database : {}", e.getMessage());
-            return ResponseDto.<SourceDto>builder()
+            log.error(marker,  "Error while adding new news to database : {}", e.getMessage());
+            return ResponseDto.<NewsDto>builder()
                     .success(false)
                     .message(e.getMessage())
                     .build();
@@ -106,7 +101,7 @@ public class SourceServiceImpl implements SourceService {
     }
 
     @Override
-    public ResponseDto deleteById(Integer id) {
+    public ResponseDto delete(Integer id) {
         try {
             if (id >= 0) {
                 return ResponseDto.builder()
@@ -125,7 +120,10 @@ public class SourceServiceImpl implements SourceService {
         }catch (Exception e) {
             Marker marker = MarkerFactory.getMarker("fatal");
             log.error(marker,  "Error while deleting source from database : {}", e.getMessage());
-            return ResponseDto.<SourceDto>builder().success(false).message(e.getMessage()).build();
+            return ResponseDto.<SourceDto>builder()
+                    .success(false)
+                    .message(e.getMessage())
+                    .build();
         }
     }
 }
