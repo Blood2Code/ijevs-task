@@ -7,7 +7,7 @@ import org.hibernate.annotations.FetchMode;
 
 import java.util.List;
 
-@Entity(name = "thematics")
+@Entity(name = "ibris_thematics")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder

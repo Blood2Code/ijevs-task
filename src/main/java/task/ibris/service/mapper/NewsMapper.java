@@ -17,7 +17,7 @@ public class NewsMapper {
         return News.builder()
                 .id(news.getId())
                 .name(news.getName())
-                .thematic(ThematicMapper.toEntity(news.getThematic()))
+                .thematic(ThematicMapper.toEntityOutOfNews(news.getThematic()))
                 .build();
     }
 

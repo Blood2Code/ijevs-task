@@ -1,5 +1,6 @@
 package task.ibris.service.impl;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Marker;
@@ -30,21 +31,23 @@ public class SourceServiceImpl implements SourceService {
     private final ValidatorService validator;
 
     @Override
-    public ResponseDto add(SourceDto source) {
+    public ResponseDto add(SourceDto source, HttpServletRequest req) {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
         try {
-            List<ValidatorDto> errors = validator.validateSource(source);
-            if (!errors.isEmpty()) {
+//            List<ValidatorDto> errors = validator.validateSource(source, resourceBundle);
+            if (source.equals(null)) {
                 return ResponseDto.builder()
                         .code(-3)
-                        .errors(errors)
-                        .message(bundle.getString("response.valid_error"))
-                        .data(bundle.getString("response.failed"))
+                        .success(false)
+                        .message(resourceBundle.getString("response.valid_error"))
+                        .data(resourceBundle.getString("response.failed"))
                         .build();
             }
             repository.save(SourceMapper.toEntity(source));
             return ResponseDto.<String>builder()
+                    .code(0)
                     .success(true)
-                    .message(bundle.getString("response.added"))
+                    .message(resourceBundle.getString("response.added"))
                     .build();
         }catch (Exception e) {
             Marker marker = MarkerFactory.getMarker("fatal");
@@ -58,7 +61,9 @@ public class SourceServiceImpl implements SourceService {
     }
 
     @Override
-    public ResponseDto<Page<SourceDto>> getAll(Integer page, Integer size) {
+    public ResponseDto<Page<SourceDto>> getAll(Integer page, Integer size, HttpServletRequest req) {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
+
         ResponseDto<Page<SourceDto>> response;
         try {
             Pageable pageRequest = PageRequest.of(page, size);
@@ -66,7 +71,7 @@ public class SourceServiceImpl implements SourceService {
 
             response = ResponseDto.<Page<SourceDto>>builder()
                     .code(0)
-                    .message(bundle.getString("response.success"))
+                    .message(resourceBundle.getString("response.success"))
                     .success(true)
                     .data(list)
                     .build();
@@ -74,20 +79,22 @@ public class SourceServiceImpl implements SourceService {
             log.error("Error while getting all product info by page and size :: {}", e.getMessage());
             response = ResponseDto.<Page<SourceDto>>builder()
                     .code(-1)
-                    .message(bundle.getString("response.error"))
+                    .message(resourceBundle.getString("response.error"))
                     .build();
         }
         return response;
     }
 
     @Override
-    public ResponseDto<SourceDto> getByName(String name) {
+    public ResponseDto<SourceDto> getByName(String name, HttpServletRequest req) {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
+
         try {
             if (!name.isEmpty()) {
                 return ResponseDto.<SourceDto>builder()
                         .code(-3)
                         .errors(Collections.singletonList(new ArrayList<>().add("Error")))
-                        .message(bundle.getString("response.valid_error") + "\n" + bundle.getString("response.empty_field"))
+                        .message(resourceBundle.getString("response.valid_error") + "\n" + resourceBundle.getString("response.empty_field"))
                         .build();
             }
             return ResponseDto.<SourceDto>builder()
@@ -106,12 +113,14 @@ public class SourceServiceImpl implements SourceService {
     }
 
     @Override
-    public ResponseDto deleteById(Integer id) {
+    public ResponseDto deleteById(Integer id, HttpServletRequest req) {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
+
         try {
             if (id >= 0) {
                 return ResponseDto.builder()
                         .code(-2)
-                        .message(bundle.getString("response.not_found"))
+                        .message(resourceBundle.getString("response.not_found"))
                         .errors(Collections.singletonList(new ArrayList<>().add(bundle.getString("response.failed"))))
                         .success(false)
                         .build();
@@ -120,7 +129,7 @@ public class SourceServiceImpl implements SourceService {
             return ResponseDto.builder()
                     .code(0)
                     .success(true)
-                    .message(bundle.getString("response.deleted"))
+                    .message(resourceBundle.getString("response.deleted"))
                     .build();
         }catch (Exception e) {
             Marker marker = MarkerFactory.getMarker("fatal");

@@ -1,5 +1,6 @@
 package task.ibris.service.impl;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Marker;
@@ -32,20 +33,23 @@ public class ThematicServiceImpl implements ThematicService {
     private final ValidatorService validator;
 
     @Override
-    public ResponseDto add(ThematicDto thematic) {
+    public ResponseDto add(ThematicDto thematic, HttpServletRequest req) {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
+
         try {
-            List<ValidatorDto> errors = validator.validateThematic(thematic);
-            if (!errors.isEmpty()) {
+//            List<ValidatorDto> errors = validator.validateThematic(thematic, resourceBundle);
+            if (thematic.equals(null)) {
                 return ResponseDto.builder()
                         .code(-3)
-                        .errors(errors)
-                        .message(bundle.getString("response.empty_field"))
+                        .success(false)
+                        .message(resourceBundle.getString("response.empty_field"))
                         .build();
             }
-            repository.save(ThematicMapper.toEntity(thematic));
+            repository.save(ThematicMapper.toEntityOutOfNews(thematic));
             return ResponseDto.builder()
                     .code(0)
-                    .message(bundle.getString("response.added"))
+                    .success(true)
+                    .message(resourceBundle.getString("response.added"))
                     .build();
         }catch (Exception e) {
             Marker marker = MarkerFactory.getMarker("fatal");
@@ -58,14 +62,16 @@ public class ThematicServiceImpl implements ThematicService {
     }
 
     @Override
-    public ResponseDto<Page<ThematicDto>> getAll(Integer page, Integer size) {
+    public ResponseDto<Page<ThematicDto>> getAll(Integer page, Integer size, HttpServletRequest req) {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
+
         ResponseDto<Page<ThematicDto>> response;
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<ThematicDto> list = repository.findAll(pageable).map(ThematicMapper::toDto);
+            Page<ThematicDto> list = repository.findAll(pageable).map(ThematicMapper::toDtoOutOfNews);
             response = ResponseDto.<Page<ThematicDto>>builder()
                     .code(0)
-                    .message(bundle.getString("response.success"))
+                    .message(resourceBundle.getString("response.success"))
                     .success(true)
                     .data(list)
                     .build();
@@ -73,20 +79,22 @@ public class ThematicServiceImpl implements ThematicService {
             log.error("Error while getting all product info by page and size :: {}", e.getMessage());
             response = ResponseDto.<Page<ThematicDto>>builder()
                     .code(-1)
-                    .message(bundle.getString("response.error"))
+                    .message(resourceBundle.getString("response.error"))
                     .build();
         }
         return response;
     }
 
     @Override
-    public ResponseDto<ThematicDto> getByName(String name) {
+    public ResponseDto<ThematicDto> getByName(String name, HttpServletRequest req) {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
+
         try {
             if (!name.isEmpty()) {
                 return ResponseDto.<ThematicDto>builder()
                         .code(-3)
                         .errors(Collections.singletonList(new ArrayList<>().add("Error")))
-                        .message(bundle.getString("response.valid_error") + "\n" + bundle.getString("response.empty_field"))
+                        .message(resourceBundle.getString("response.valid_error") + "\n" + resourceBundle.getString("response.empty_field"))
                         .build();
             }
             return ResponseDto.<ThematicDto>builder()
@@ -105,13 +113,15 @@ public class ThematicServiceImpl implements ThematicService {
     }
 
     @Override
-    public ResponseDto delete(Integer id) {
+    public ResponseDto delete(Integer id, HttpServletRequest req) {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
+
         try {
             if (id >= 0) {
                 return ResponseDto.builder()
                         .code(-2)
-                        .message(bundle.getString("response.not_found"))
-                        .errors(Collections.singletonList(new ArrayList<>().add(bundle.getString("response.failed"))))
+                        .message(resourceBundle.getString("response.not_found"))
+                        .errors(Collections.singletonList(new ArrayList<>().add(resourceBundle.getString("response.failed"))))
                         .success(false)
                         .build();
             }
@@ -119,7 +129,7 @@ public class ThematicServiceImpl implements ThematicService {
             return ResponseDto.builder()
                     .code(0)
                     .success(true)
-                    .message(bundle.getString("response.deleted"))
+                    .message(resourceBundle.getString("response.deleted"))
                     .build();
         }catch (Exception e) {
             Marker marker = MarkerFactory.getMarker("fatal");
