@@ -11,12 +11,15 @@ import task.ibris.dto.SourceDto;
 import task.ibris.service.SourceService;
 import task.ibris.service.impl.SourceServiceImpl;
 
+import java.io.IOException;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/source")
 public class SourceController {
     @Autowired
     private SourceServiceImpl service;
+
     @PostMapping
     @ResponseBody
     public ResponseDto add(@RequestBody SourceDto sourceDto, HttpServletRequest req) {
@@ -33,6 +36,11 @@ public class SourceController {
     @ResponseBody
     public ResponseDto<SourceDto> getByName(@PathVariable String name, HttpServletRequest req) {
         return service.getByName(name, req);
+    }
+
+    @GetMapping("/csv")
+    public void getCsv() throws IOException {
+        service.exportAsCsv();
     }
 
     @DeleteMapping("/{id}")

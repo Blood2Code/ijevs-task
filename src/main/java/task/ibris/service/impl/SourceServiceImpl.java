@@ -8,15 +8,22 @@ import org.slf4j.MarkerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import task.ibris.dto.ResponseDto;
 import task.ibris.dto.SourceDto;
 import task.ibris.dto.ValidatorDto;
+import task.ibris.entity.News;
+import task.ibris.entity.Source;
+import task.ibris.entity.Thematic;
+import task.ibris.repository.NewsRepository;
 import task.ibris.repository.SourceRepository;
+import task.ibris.repository.ThematicRepository;
 import task.ibris.service.SourceService;
 import task.ibris.service.ValidatorService;
 import task.ibris.service.mapper.SourceMapper;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,17 +35,20 @@ import java.util.ResourceBundle;
 public class SourceServiceImpl implements SourceService {
     private final ResourceBundle bundle;
     private final SourceRepository repository;
+    private final ThematicRepository thematicRepository;
+    private final NewsRepository newsRepository;
     private final ValidatorService validator;
 
     @Override
     public ResponseDto add(SourceDto source, HttpServletRequest req) {
         ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
         try {
-//            List<ValidatorDto> errors = validator.validateSource(source, resourceBundle);
+            List<ValidatorDto> errors = validator.validateSource(source, resourceBundle);
             if (source.equals(null)) {
                 return ResponseDto.builder()
                         .code(-3)
                         .success(false)
+                        .errors(errors)
                         .message(resourceBundle.getString("response.valid_error"))
                         .data(resourceBundle.getString("response.failed"))
                         .build();
@@ -136,5 +146,35 @@ public class SourceServiceImpl implements SourceService {
             log.error(marker,  "Error while deleting source from database : {}", e.getMessage());
             return ResponseDto.<SourceDto>builder().success(false).message(e.getMessage()).build();
         }
+    }
+
+    @Scheduled(cron = "0 0 * * *")
+    public void exportAsCsv() throws IOException {
+        List<Source> sourceList =  repository.findAll();
+        for (Source source : sourceList) {
+            Thread thread = new Thread(() -> {
+                try {
+                    runImp(source);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            thread.start();
+        }
+    }
+
+    private void runImp(Source source) throws IOException {
+        Writer writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(source.getName()+".csv"), "utf-8"));
+        List<Thematic> thematics = thematicRepository.findAllBySourceId(source.getId());
+        for (Thematic thematic : thematics) {
+            List<News> newsList = newsRepository.findAllByThematic(thematic);
+            for (News news : newsList) {
+                writer.write(String.format(source.getName() + ";" + thematic.getName() + ";" + news.getName()+ "\n"));
+//                TODO: string format qilib chiqish kere
+            }
+        }
+        writer.close();
+        Thread.currentThread().interrupt();
     }
 }
