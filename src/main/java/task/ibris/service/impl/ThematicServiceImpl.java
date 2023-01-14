@@ -37,11 +37,12 @@ public class ThematicServiceImpl implements ThematicService {
         ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
 
         try {
-//            List<ValidatorDto> errors = validator.validateThematic(thematic, resourceBundle);
-            if (thematic.equals(null)) {
+            List<ValidatorDto> errors = validator.validateThematic(thematic, resourceBundle);
+            if (!errors.isEmpty()) {
                 return ResponseDto.builder()
                         .code(-3)
                         .success(false)
+                        .errors(errors)
                         .message(resourceBundle.getString("response.empty_field"))
                         .build();
             }

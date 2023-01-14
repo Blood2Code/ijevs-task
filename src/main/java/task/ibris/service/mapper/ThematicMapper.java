@@ -9,20 +9,22 @@ public class ThematicMapper {
                 .id(thematic.getId())
                 .name(thematic.getName())
                 .news(thematic.getNews().stream().map(NewsMapper::toDto).toList())
+                .source_id(thematic.getSourceId())
                 .build();
     }
     public static Thematic toEntity(ThematicDto thematic) {
         return Thematic.builder()
                 .id(thematic.getId())
                 .name(thematic.getName())
+                .sourceId(thematic.getSource_id())
                 .news(thematic.getNews().stream().map(NewsMapper::toEntity).toList())
                 .build();
     }
-//TODO: name ga tekshiruv qoyilgan name bermayappa shunga error beryapti.
     public static Thematic toEntityOutOfNews(ThematicDto thematic) {
         return Thematic.builder()
                 .id(thematic.getId())
                 .name(thematic.getName())
+                .sourceId(thematic.getSource_id())
                 .build();
     }
 
@@ -30,6 +32,7 @@ public class ThematicMapper {
         return ThematicDto.builder()
                 .id(thematic.getId())
                 .name(thematic.getName())
+                .source_id(thematic.getSourceId())
                 .build();
     }
 }

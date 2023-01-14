@@ -20,4 +20,5 @@ public class Thematic {
     @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
     @Fetch(FetchMode.SUBSELECT)
     private List<News> news;
+    private Integer sourceId;
 }
