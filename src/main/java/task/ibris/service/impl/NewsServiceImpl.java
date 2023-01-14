@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import task.ibris.dto.*;
+import task.ibris.entity.News;
 import task.ibris.repository.NewsRepository;
 import task.ibris.service.NewsService;
 import task.ibris.service.ValidatorService;
@@ -33,15 +34,17 @@ public class NewsServiceImpl implements NewsService {
     public ResponseDto add(HttpServletRequest req, NewsDto news) {
         ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
         try {
-//            List<ValidatorDto> errors = validator.validateNews(news, resourceBundle);
-            if (news.getName().isEmpty()) {
+            List<ValidatorDto> errors = validator.validateNews(news, resourceBundle);
+            if (!errors.isEmpty()) {
                 return ResponseDto.builder()
                         .code(-3)
                         .success(false)
+                        .errors(errors)
                         .message(resourceBundle.getString("response.empty_field"))
                         .build();
             }
-            repository.save(NewsMapper.toEntity(news));
+            News news1 = NewsMapper.toEntity(news);
+            repository.save(news1);
             return ResponseDto.builder()
                     .code(0)
                     .success(true)

@@ -17,7 +17,8 @@ public class NewsController {
     @Autowired
     private NewsServiceImpl service;
     @PostMapping
-    public @ResponseBody ResponseDto add(@RequestBody NewsDto newsDto, HttpServletRequest req) {
+    @ResponseBody
+    public ResponseDto add(@RequestBody NewsDto newsDto, HttpServletRequest req) {
         return service.add(req, newsDto);
     }
 
