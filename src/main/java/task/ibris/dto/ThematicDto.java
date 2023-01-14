@@ -13,4 +13,5 @@ public class ThematicDto {
     private Integer id;
     private String name;
     private List<NewsDto> news;
+    private Integer source_id;
 }
