@@ -28,8 +28,6 @@ public class NewsServiceImpl implements NewsService {
     private final NewsRepository repository;
     private final ResourceBundle bundle;
 
-    private final MessageSource messageSource;
-
     @Override
     public ResponseDto add(HttpServletRequest req, NewsDto news) {
         ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getBaseBundleName(), req.getLocale());
@@ -43,8 +41,7 @@ public class NewsServiceImpl implements NewsService {
                         .message(resourceBundle.getString("response.empty_field"))
                         .build();
             }
-            News news1 = NewsMapper.toEntity(news);
-            repository.save(news1);
+            repository.save(NewsMapper.toEntity(news));
             return ResponseDto.builder()
                     .code(0)
                     .success(true)
