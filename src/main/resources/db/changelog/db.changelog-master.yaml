@@ -8,6 +8,14 @@ databaseChangeLog:
             sequenceName: ibris_news_seq_id
             dataType: INT
             startValue: 1
+        - createSequence:
+            sequenceName: ibris_thematic_seq_id
+            dataType: INT
+            startValue: 1
+        - createSequence:
+            sequenceName: ibris_source_seq_id
+            dataType: INT
+            startValue: 1
         - createTable:
             tableName: ibris_news
             columns:
@@ -17,7 +25,6 @@ databaseChangeLog:
                   defaultValueSequenceNext: ibris_news_seq_id
                   constraints:
                     primaryKey: true
-
               - column:
                   name: new_name
                   type: varchar(255)
@@ -34,6 +41,7 @@ databaseChangeLog:
               - column:
                   name: id
                   type: INT
+                  defaultValueSequenceNext: ibris_thematic_seq_id
                   constraints:
                     primaryKey: true
               - column:
@@ -52,6 +60,7 @@ databaseChangeLog:
               - column:
                   name: id
                   type: INT
+                  defaultValueSequenceNext: ibris_source_seq_id
                   constraints:
                     primaryKey: true
               - column:
